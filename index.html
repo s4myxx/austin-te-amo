@@ -148,6 +148,49 @@
         .badge-pendiente { background: #fef3c7; color: #92400e; }
         .badge-confirmada { background: #dcfce7; color: #166534; }
         .sin-citas { text-align: center; padding: 40px 16px; color: #94a3b8; font-size: 0.85rem; }
+
+        /* ── MODAL EDITAR CITA (DOCTOR) ── */
+        #modal-editar-cita { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 1050; }
+        #modal-editar-cita.activa { display: flex; }
+        .caja-editar-cita { background: white; border-radius: 12px; padding: 24px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .caja-editar-cita h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 14px; }
+        .caja-editar-cita label { font-size: 0.78rem; color: #64748b; display: block; margin-bottom: 3px; margin-top: 10px; }
+        .caja-editar-cita input, .caja-editar-cita select { width: 100%; padding: 7px 10px; border: 1px solid var(--gris-borde); border-radius: 6px; font-size: 0.85rem; outline: none; }
+        .caja-editar-cita input:focus { border-color: var(--azul-claro); }
+
+        /* ── MOBILE RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .interfaz-medica { flex-direction: column; }
+            .sidebar { width: 100%; padding: 0; flex-direction: row; align-items: center; justify-content: space-between; height: 52px; padding: 0 12px; position: relative; z-index: 200; }
+            .sidebar > div:first-child { font-size: 1rem; font-weight: 800; margin-bottom: 0; }
+            .sidebar-nav { display: none; flex-direction: column; gap: 0; position: absolute; top: 52px; left: 0; right: 0; background: #1e293b; padding: 8px 12px 12px; z-index: 199; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+            .sidebar-nav.abierto { display: flex; }
+            .nav-item { padding: 11px 12px; font-size: 0.9rem; border-radius: 8px; }
+            .btn-menu-mobile { display: flex; align-items: center; justify-content: center; background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; padding: 6px; }
+            .contenido-principal { overflow: visible; }
+            .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+            .topbar h2 { font-size: 0.88rem; }
+            #doctor-tag { font-size: 0.78rem !important; }
+            .area-trabajo { padding: 10px; }
+            .dashboard-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .stat-info h3 { font-size: 1.3rem; }
+            .grid-form { grid-template-columns: 1fr 1fr; }
+            .grid-camillas { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .tabla-profesional th, .tabla-profesional td { padding: 8px 8px; font-size: 0.76rem; }
+            .caja-modal { width: 90vw; max-width: 340px; }
+            .caja-qr { width: 90vw; max-width: 340px; padding: 20px; }
+            .caja-editar-cita { width: 90vw; max-width: 340px; }
+            .cita-card { flex-wrap: wrap; gap: 10px; }
+            #banner-emergencia { flex-wrap: wrap; gap: 8px; }
+            .btn-sos-llamar, .btn-sos-guardar { font-size: 0.78rem; padding: 7px 12px; }
+            .login-box { margin: 16px; padding: 20px; }
+        }
+        @media (max-width: 420px) {
+            .dashboard-stats { grid-template-columns: 1fr 1fr; }
+            .grid-form { grid-template-columns: 1fr; }
+            .tabla-profesional { display: block; overflow-x: auto; }
+        }
+        .btn-menu-mobile { display: none; }
     </style>
 </head>
 <body>
@@ -181,6 +224,36 @@
                 <button class="btn-vcard" onclick="descargarVCard()"><i class="fas fa-address-card"></i> Guardar Contacto</button>
             </div>
             <button class="btn-cerrar-qr" onclick="cerrarQR()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- ── MODAL EDITAR CITA (DOCTOR) ── -->
+    <div id="modal-editar-cita">
+        <div class="caja-editar-cita">
+            <h3><i class="fas fa-calendar-edit" style="color:var(--azul-claro);"></i> Editar Cita</h3>
+            <p id="editar-cita-paciente-label" style="font-size:0.82rem; color:#64748b; margin-bottom:4px;"></p>
+            <label>Fecha</label>
+            <input type="date" id="editar-cita-fecha">
+            <label>Hora</label>
+            <select id="editar-cita-hora">
+                <option value="08:00">08:00</option><option value="08:30">08:30</option>
+                <option value="09:00">09:00</option><option value="09:30">09:30</option>
+                <option value="10:00">10:00</option><option value="10:30">10:30</option>
+                <option value="11:00">11:00</option><option value="11:30">11:30</option>
+                <option value="14:00">14:00</option><option value="14:30">14:30</option>
+                <option value="15:00">15:00</option><option value="15:30">15:30</option>
+                <option value="16:00">16:00</option><option value="16:30">16:30</option>
+            </select>
+            <label>Estado</label>
+            <select id="editar-cita-estado">
+                <option value="confirmada">✓ Confirmada</option>
+                <option value="pendiente">⏳ Pendiente</option>
+                <option value="reprogramada">🔄 Reprogramada</option>
+            </select>
+            <div class="modal-botones" style="margin-top:16px;">
+                <button class="btn-secundario" onclick="cerrarEditarCita()">Cancelar</button>
+                <button class="btn-guardar" style="margin-top:0;" onclick="guardarEdicionCita()">Guardar Cambios</button>
+            </div>
         </div>
     </div>
 
@@ -246,6 +319,7 @@
     <div id="app-screen" class="pantalla interfaz-medica">
         <aside class="sidebar">
             <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;"><span class="texto-naranja">H</span> Austin</div>
+            <button class="btn-menu-mobile" onclick="toggleMenuMobile()" id="btn-menu-mobile" aria-label="Menú"><i class="fas fa-bars"></i></button>
             <nav class="sidebar-nav" id="sidebar-nav"></nav>
         </aside>
 
@@ -380,6 +454,19 @@
                     </div>
                 </div>
 
+                <!-- ── SECCIÓN CITAS DOCTOR ── -->
+                <div id="sec-citas-doctor" class="seccion">
+                    <div class="tarjeta">
+                        <div class="tarjeta-cabecera cabecera-con-boton">
+                            <span><i class="fas fa-calendar-alt" style="color:var(--azul-claro);"></i> Agenda de Citas</span>
+                            <span id="total-citas-badge" style="font-size:0.75rem; background:#eff6ff; color:var(--azul-claro); padding:3px 10px; border-radius:20px; font-weight:600;"></span>
+                        </div>
+                        <div class="tarjeta-cuerpo" id="contenido-citas-doctor">
+                            <div class="sin-citas"><i class="fas fa-calendar-times" style="font-size:2rem; display:block; margin-bottom:10px;"></i>No hay citas registradas aún.</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </section>
     </div>
@@ -440,6 +527,7 @@
 
         /* ────── ESTADO GLOBAL ────── */
         let rolActual = 'paciente';
+        let nombreDoctorActual = 'Dr. del Hospital Austin';
         let pacientes = [], camillas = [], expCounter = 101, pSeleccionado = null;
         let citasGuardadas = [];
         let pacienteQRActual = null;
@@ -468,29 +556,36 @@
         /* ────── ASIGNACIÓN AUTOMÁTICA DE CITA ────── */
         function generarCitaAutomatica(paciente) {
             const ahora = new Date();
-            /* Asigna cita entre 1 y 5 días hábiles en el futuro, en bloques de 30 min */
             const diasExtra = Math.floor(Math.random() * 5) + 1;
             const fecha = new Date(ahora);
             fecha.setDate(fecha.getDate() + diasExtra);
-            /* Evitar sábado (6) y domingo (0) */
             while (fecha.getDay() === 0 || fecha.getDay() === 6) fecha.setDate(fecha.getDate() + 1);
             const horas  = [8, 8.5, 9, 9.5, 10, 10.5, 11, 14, 14.5, 15, 15.5, 16];
             const hIdx   = Math.floor(Math.random() * horas.length);
             const h      = Math.floor(horas[hIdx]);
             const m      = horas[hIdx] % 1 === 0.5 ? '30' : '00';
-            const doctor = DOCTORES_FICTICIOS[Math.floor(Math.random() * DOCTORES_FICTICIOS.length)];
+            /* Usar el doctor que está logueado actualmente */
+            const doctorFallback = DOCTORES_FICTICIOS[Math.floor(Math.random() * DOCTORES_FICTICIOS.length)];
+            const doctorNombre   = rolActual === 'doctor' ? nombreDoctorActual : doctorFallback.nombre;
+            const doctorTel      = rolActual === 'doctor' ? '+503 7000-0000' : doctorFallback.telefono;
+            const especialidad   = rolActual === 'doctor' ? 'Médico Tratante' : doctorFallback.especialidad;
             const diasSemana = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
             const meses      = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
             const fechaStr   = `${diasSemana[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]} ${fecha.getFullYear()}`;
+            /* Guardar también la fecha ISO para el input type=date del editor */
+            const mm = String(fecha.getMonth()+1).padStart(2,'0');
+            const dd = String(fecha.getDate()).padStart(2,'0');
+            const fechaISO = `${fecha.getFullYear()}-${mm}-${dd}`;
             const cita = {
                 id: 'CITA-' + Date.now(),
                 expediente: paciente.id,
                 paciente: `${paciente.nombres} ${paciente.apellidos}`,
-                doctor: doctor.nombre,
-                especialidad: doctor.especialidad,
-                telefonoDoctor: doctor.telefono,
+                doctor: doctorNombre,
+                especialidad: especialidad,
+                telefonoDoctor: doctorTel,
                 motivo: paciente.motivo,
                 fecha: fechaStr,
+                fechaISO: fechaISO,
                 hora: `${String(h).padStart(2,'0')}:${m}`,
                 estado: 'confirmada'
             };
@@ -569,6 +664,11 @@
             else { inputOtro.style.display = 'none'; inputOtro.required = false; if (opcion.dataset.color) selectPrioridad.value = opcion.dataset.color; }
         }
 
+        function toggleMenuMobile() {
+            const nav = document.getElementById('sidebar-nav');
+            nav.classList.toggle('abierto');
+        }
+
         function construirNav() {
             const nav = document.getElementById('sidebar-nav');
             if (rolActual === 'doctor') {
@@ -576,9 +676,9 @@
                     <button class="nav-item activo" onclick="cambiarSeccion('sec-ingreso', this)"><i class="fas fa-plus-circle"></i> Admisión</button>
                     <button class="nav-item" onclick="cambiarSeccion('sec-directorio', this)"><i class="fas fa-address-book"></i> Directorio</button>
                     <button class="nav-item" onclick="cambiarSeccion('sec-camas', this)"><i class="fas fa-bed"></i> Camillas</button>
+                    <button class="nav-item" onclick="cambiarSeccion('sec-citas-doctor', this); renderizarCitasDoctor();"><i class="fas fa-calendar-alt"></i> Agenda Citas</button>
                     <div style="height:1px; background:rgba(255,255,255,0.1); margin:15px 0;"></div>
                     <button class="nav-item salir" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>`;
-                /* ocultar banner emergencia en modo doctor */
                 document.getElementById('banner-emergencia').classList.remove('visible');
             } else {
                 nav.innerHTML = `
@@ -587,9 +687,12 @@
                     <button class="nav-item" onclick="cambiarSeccion('sec-citas', this); renderizarCitas();"><i class="fas fa-calendar-check"></i> Mis Citas</button>
                     <div style="height:1px; background:rgba(255,255,255,0.1); margin:15px 0;"></div>
                     <button class="nav-item salir" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>`;
-                /* mostrar banner emergencia en modo paciente */
                 document.getElementById('banner-emergencia').classList.add('visible');
             }
+            /* Cerrar menú mobile al hacer click en nav item */
+            nav.querySelectorAll('.nav-item').forEach(btn => {
+                btn.addEventListener('click', () => nav.classList.remove('abierto'));
+            });
         }
 
         function accederSistema() {
@@ -607,6 +710,7 @@
 
             if (pass === 'doctor123') {
                 rolActual = 'doctor';
+                nombreDoctorActual = cuenta ? `${cuenta.nombres} ${cuenta.apellidos}` : 'Dr. del Hospital Austin';
                 tag.innerHTML = `${nombreMostrar} <span style="background:var(--triage-critico);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:8px;">ADMIN</span>`;
                 document.getElementById('p-est').disabled = false;
             } else {
@@ -683,7 +787,7 @@
             }, 500);
         }
 
-        /* ────── RENDER CITAS ────── */
+        /* ────── RENDER CITAS PACIENTE ────── */
         function cancelarCita(idCita) {
             citasGuardadas = citasGuardadas.filter(c => c.id !== idCita);
             guardarDatos();
@@ -707,11 +811,79 @@
                         <p style="margin-top:2px; color:#64748b; font-size:0.75rem;"><i class="fas fa-notes-medical" style="font-size:0.7rem;"></i> ${c.motivo}</p>
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0; padding-right:20px;">
-                        <span class="badge-cita ${c.estado === 'confirmada' ? 'badge-confirmada' : 'badge-pendiente'}">${c.estado === 'confirmada' ? '✓ Confirmada' : 'Pendiente'}</span>
+                        <span class="badge-cita ${c.estado === 'confirmada' ? 'badge-confirmada' : c.estado === 'reprogramada' ? '' : 'badge-pendiente'}" style="${c.estado === 'reprogramada' ? 'background:#e0f2fe; color:#0369a1;' : ''}">${c.estado === 'confirmada' ? '✓ Confirmada' : c.estado === 'reprogramada' ? '🔄 Reprogramada' : '⏳ Pendiente'}</span>
                         <a href="tel:${c.telefonoDoctor.replace(/\D/g,'')}" style="font-size:0.72rem; color:var(--azul-claro); text-decoration:none; font-weight:600;"><i class="fas fa-phone"></i> Llamar</a>
                     </div>
                 </div>
             `).join('');
+        }
+
+        /* ────── RENDER CITAS DOCTOR ────── */
+        let citaEditandoId = null;
+
+        function renderizarCitasDoctor() {
+            const cont = document.getElementById('contenido-citas-doctor');
+            const badge = document.getElementById('total-citas-badge');
+            badge.innerText = `${citasGuardadas.length} cita${citasGuardadas.length !== 1 ? 's' : ''}`;
+            if (citasGuardadas.length === 0) {
+                cont.innerHTML = `<div class="sin-citas"><i class="fas fa-calendar-times" style="font-size:2rem; display:block; margin-bottom:10px;"></i>No hay citas registradas aún.</div>`;
+                return;
+            }
+            cont.innerHTML = citasGuardadas.map(c => `
+                <div class="cita-card" style="position:relative;">
+                    <div class="cita-icono"><i class="fas fa-user-injured"></i></div>
+                    <div class="cita-info">
+                        <h4>${c.paciente} <span style="font-weight:400; color:#64748b; font-size:0.78rem;">— ${c.expediente}</span></h4>
+                        <p><i class="fas fa-stethoscope" style="font-size:0.7rem;"></i> ${c.doctor} &nbsp;|&nbsp; <i class="fas fa-tag" style="font-size:0.7rem;"></i> ${c.especialidad}</p>
+                        <p style="margin-top:3px;"><i class="fas fa-calendar" style="font-size:0.7rem;"></i> ${c.fecha} &nbsp; <i class="fas fa-clock" style="font-size:0.7rem;"></i> ${c.hora}</p>
+                        <p style="margin-top:2px; color:#64748b; font-size:0.75rem;"><i class="fas fa-notes-medical" style="font-size:0.7rem;"></i> ${c.motivo}</p>
+                    </div>
+                    <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0;">
+                        <span class="badge-cita ${c.estado === 'confirmada' ? 'badge-confirmada' : c.estado === 'reprogramada' ? '' : 'badge-pendiente'}" style="${c.estado === 'reprogramada' ? 'background:#e0f2fe; color:#0369a1;' : ''}">${c.estado === 'confirmada' ? '✓ Confirmada' : c.estado === 'reprogramada' ? '🔄 Reprogramada' : '⏳ Pendiente'}</span>
+                        <button onclick="abrirEditarCita('${c.id}')" style="font-size:0.72rem; color:var(--azul-claro); background:none; border:1px solid var(--azul-claro); border-radius:5px; padding:3px 9px; cursor:pointer; font-weight:600;"><i class="fas fa-edit"></i> Editar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function abrirEditarCita(idCita) {
+            const cita = citasGuardadas.find(c => c.id === idCita);
+            if (!cita) return;
+            citaEditandoId = idCita;
+            document.getElementById('editar-cita-paciente-label').innerText = `Paciente: ${cita.paciente} — ${cita.expediente}`;
+            document.getElementById('editar-cita-fecha').value = cita.fechaISO || '';
+            document.getElementById('editar-cita-hora').value = cita.hora;
+            document.getElementById('editar-cita-estado').value = cita.estado;
+            document.getElementById('modal-editar-cita').classList.add('activa');
+        }
+
+        function cerrarEditarCita() {
+            document.getElementById('modal-editar-cita').classList.remove('activa');
+            citaEditandoId = null;
+        }
+
+        function guardarEdicionCita() {
+            const cita = citasGuardadas.find(c => c.id === citaEditandoId);
+            if (!cita) return;
+            const fechaISO  = document.getElementById('editar-cita-fecha').value;
+            const hora      = document.getElementById('editar-cita-hora').value;
+            const estado    = document.getElementById('editar-cita-estado').value;
+            /* Reconstruir fecha legible desde el ISO */
+            let fechaStr = cita.fecha;
+            if (fechaISO) {
+                const partes = fechaISO.split('-');
+                const d = new Date(parseInt(partes[0]), parseInt(partes[1])-1, parseInt(partes[2]));
+                const diasSemana = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+                const meses      = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                fechaStr = `${diasSemana[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+            }
+            cita.fechaISO = fechaISO;
+            cita.fecha    = fechaStr;
+            cita.hora     = hora;
+            cita.estado   = estado;
+            guardarDatos();
+            cerrarEditarCita();
+            renderizarCitasDoctor();
         }
 
         /* ────── ALTA ────── */
