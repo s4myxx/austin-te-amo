@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Austin | Sistema de Gestión Total</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --azul-medico: #1a56db;
+            --azul-claro: #3b82f6;
+            --triage-critico: #ef4444;
+            --triage-leve: #f59e0b;
+            --triage-espera: #22c55e;
+            --gris-borde: #e2e8f0;
+            --gris-texto: #374151;
+            --fondo: #f8fafc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--fondo); color: var(--gris-texto); }
+
+        .overlay-carga { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 999; }
+        .overlay-carga.activa { display: flex; }
+        .caja-carga { background: white; padding: 30px 40px; border-radius: 12px; text-align: center; }
+        .caja-carga i { font-size: 2rem; color: var(--azul-claro); margin-bottom: 10px; }
+        .caja-carga h3 { font-size: 1rem; color: var(--gris-texto); }
+
+        .overlay-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 998; }
+        .overlay-modal.activa { display: flex; }
+        .caja-modal { background: white; padding: 24px; border-radius: 12px; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .caja-modal h3 { font-size: 1rem; margin-bottom: 8px; }
+        .modal-botones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+        .btn-secundario { padding: 7px 14px; border: 1px solid var(--gris-borde); background: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .btn-peligro { padding: 7px 14px; background: var(--triage-critico); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+
+        .pantalla { display: none; }
+        .pantalla.activa { display: flex; }
+        #login-screen { min-height: 100vh; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); }
+        .login-box { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .login-box h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+        .texto-naranja { color: #f97316; }
+        .campo-login { display: flex; align-items: center; gap: 10px; border: 1px solid var(--gris-borde); border-radius: 8px; padding: 9px 12px; margin-bottom: 10px; }
+        .campo-login i { color: #94a3b8; font-size: 0.85rem; width: 14px; }
+        .campo-login input, .campo-login select { border: none; outline: none; font-size: 0.9rem; width: 100%; color: var(--gris-texto); background: transparent; }
+        .btn-principal { width: 100%; padding: 10px; background: var(--azul-medico); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+        .btn-principal:hover { background: var(--azul-claro); }
+
+        .interfaz-medica { min-height: 100vh; flex-direction: row; }
+        .sidebar { width: 200px; background: #1e293b; display: flex; flex-direction: column; padding: 20px 12px; }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: none; background: none; color: #94a3b8; font-size: 0.82rem; cursor: pointer; border-radius: 8px; text-align: left; width: 100%; }
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .nav-item.activo { background: rgba(59,130,246,0.2); color: #93c5fd; }
+        .nav-item.salir { color: #f87171; margin-top: auto; }
+        .contenido-principal { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { padding: 14px 20px; border-bottom: 1px solid var(--gris-borde); display: flex; align-items: center; justify-content: space-between; background: white; }
+        .topbar h2 { font-size: 1rem; font-weight: 600; }
+        .area-trabajo { flex: 1; overflow-y: auto; padding: 16px; background: var(--fondo); }
+        .seccion { display: none; }
+        .seccion.activa { display: block; }
+
+        .tarjeta { background: white; border: 1px solid var(--gris-borde); border-radius: 12px; margin-bottom: 14px; }
+        .tarjeta-cabecera { padding: 12px 16px; border-bottom: 1px solid var(--gris-borde); font-size: 0.9rem; font-weight: 600; }
+        .cabecera-con-boton { display: flex; align-items: center; justify-content: space-between; }
+        .tarjeta-cuerpo { padding: 16px; }
+        .p-0 { padding: 0; }
+
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+        .campo label { font-size: 0.78rem; color: #64748b; margin-bottom: 3px; display: block; }
+        .campo input, .campo select { width: 100%; padding: 7px 10px; border: 1px solid var(--gris-borde); border-radius: 6px; font-size: 0.85rem; outline: none; }
+        .campo input:focus, .campo select:focus { border-color: var(--azul-claro); }
+        .ancho-completo { grid-column: 1 / -1; }
+        .btn-guardar { padding: 8px 20px; background: var(--azul-medico); color: white; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .btn-guardar:hover { background: var(--azul-claro); }
+        .input-dinamico { min-width: 80px; transition: width 0.1s; }
+
+        .dashboard-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+        .stat-card { background: white; border: 1px solid var(--gris-borde); border-radius: 10px; padding: 14px; display: flex; align-items: center; justify-content: space-between; }
+        .stat-card.critico { border-left: 3px solid var(--triage-critico); }
+        .stat-card.exito { border-left: 3px solid var(--triage-espera); }
+        .stat-info span { font-size: 0.75rem; color: #64748b; }
+        .stat-info h3 { font-size: 1.8rem; font-weight: 700; }
+        .stat-icon { font-size: 1.4rem; }
+
+        .tabla-profesional { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+        .tabla-profesional th { padding: 10px 14px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; border-bottom: 1px solid var(--gris-borde); background: #f8fafc; }
+        .tabla-profesional td { padding: 10px 14px; border-bottom: 1px solid var(--gris-borde); }
+        .btn-alta { padding: 4px 10px; background: none; border: 1px solid var(--triage-critico); color: var(--triage-critico); border-radius: 5px; font-size: 0.75rem; cursor: pointer; }
+        .btn-alta:hover { background: var(--triage-critico); color: white; }
+        .btn-excel { padding: 5px 12px; background: #16a34a; color: white; border: none; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+
+        .grid-camillas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .camilla { border: 1px solid var(--gris-borde); border-radius: 10px; padding: 12px; font-size: 0.82rem; }
+        .camilla h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+        .camilla p { color: #64748b; font-size: 0.78rem; }
+        .camilla.libre { border-color: var(--triage-espera); }
+        .camilla.ocupada-critico { border-color: var(--triage-critico); background: #fff5f5; }
+        .camilla.ocupada-leve { border-color: var(--triage-leve); background: #fffbeb; }
+        .camilla.ocupada-espera { border-color: var(--triage-espera); background: #f0fdf4; }
+        .camilla.mantenimiento { background: #f1f5f9; border-color: #94a3b8; }
+        .timer-cama { font-size: 0.7rem; color: #94a3b8; }
+        .btn-alta-camilla { margin-top: 6px; width: 100%; padding: 4px; background: var(--triage-critico); color: white; border: none; border-radius: 5px; font-size: 0.75rem; cursor: pointer; }
+
+        /* ── QR MODAL ── */
+        #modal-qr { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        #modal-qr.activa { display: flex; }
+        .caja-qr { background: white; border-radius: 16px; padding: 28px 32px; width: 340px; box-shadow: 0 12px 40px rgba(0,0,0,0.2); text-align: center; }
+        .caja-qr h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+        .caja-qr p { font-size: 0.78rem; color: #64748b; margin-bottom: 16px; }
+        #qr-canvas-container { display: flex; justify-content: center; margin-bottom: 16px; }
+        .btn-descargar-qr { display: inline-block; padding: 8px 18px; background: var(--azul-medico); color: white; border: none; border-radius: 8px; font-size: 0.83rem; font-weight: 600; cursor: pointer; margin-right: 8px; }
+        .btn-vcard { display: inline-block; padding: 8px 18px; background: #16a34a; color: white; border: none; border-radius: 8px; font-size: 0.83rem; font-weight: 600; cursor: pointer; }
+        .btn-cerrar-qr { display: block; margin-top: 12px; width: 100%; padding: 7px; background: none; border: 1px solid var(--gris-borde); border-radius: 8px; cursor: pointer; font-size: 0.83rem; color: #64748b; }
+
+        /* ── BOTÓN EMERGENCIA INLINE ── */
+        #banner-emergencia {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff1f1;
+            border: 1.5px solid var(--triage-critico);
+            border-radius: 10px;
+            padding: 11px 16px;
+            margin-bottom: 14px;
+            gap: 12px;
+        }
+        #banner-emergencia.visible { display: flex; }
+        .banner-sos-texto { font-size: 0.83rem; font-weight: 600; color: #b91c1c; flex: 1; }
+        .banner-sos-texto span { font-weight: 400; color: #ef4444; font-size: 0.78rem; display: block; margin-top: 1px; }
+        .btn-sos-llamar { display: flex; align-items: center; gap: 7px; padding: 8px 16px; background: var(--triage-critico); color: white; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; white-space: nowrap; text-decoration: none; }
+        .btn-sos-guardar { display: flex; align-items: center; gap: 7px; padding: 8px 14px; background: none; border: 1.5px solid var(--triage-critico); color: var(--triage-critico); border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        @keyframes pulso-sos {
+            0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.45); }
+            70%  { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+            100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+        }
+        .btn-sos-llamar { animation: pulso-sos 1.8s infinite; }
+
+        /* ── SECCIÓN CITAS ── */
+        .cita-card { background: white; border: 1px solid var(--gris-borde); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+        .cita-icono { width: 42px; height: 42px; border-radius: 50%; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--azul-claro); flex-shrink: 0; }
+        .cita-info { flex: 1; }
+        .cita-info h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
+        .cita-info p { font-size: 0.78rem; color: #64748b; }
+        .badge-cita { font-size: 0.7rem; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+        .badge-pendiente { background: #fef3c7; color: #92400e; }
+        .badge-confirmada { background: #dcfce7; color: #166534; }
+        .sin-citas { text-align: center; padding: 40px 16px; color: #94a3b8; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+    <div id="pantalla-carga" class="overlay-carga">
+        <div class="caja-carga">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <h3>Sincronizando Sistema...</h3>
+        </div>
+    </div>
+
+    <div id="modal-alta" class="overlay-modal">
+        <div class="caja-modal">
+            <h3><i class="fas fa-door-open" style="color:var(--triage-critico)"></i> Confirmar Alta</h3>
+            <p style="margin: 10px 0; font-size: 0.9rem;">¿Desea finalizar el proceso del paciente <strong id="nombre-paciente-alta"></strong>?</p>
+            <div class="modal-botones">
+                <button class="btn-secundario" onclick="cerrarModalAlta()">Cancelar</button>
+                <button class="btn-peligro" onclick="ejecutarAlta()">Confirmar Alta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL QR ── -->
+    <div id="modal-qr">
+        <div class="caja-qr">
+            <h3><i class="fas fa-qrcode" style="color:var(--azul-claro);"></i> QR del Paciente</h3>
+            <p id="qr-subtitulo">Escanea para guardar como contacto</p>
+            <div id="qr-canvas-container"></div>
+            <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+                <button class="btn-descargar-qr" onclick="descargarQR()"><i class="fas fa-download"></i> Descargar QR</button>
+                <button class="btn-vcard" onclick="descargarVCard()"><i class="fas fa-address-card"></i> Guardar Contacto</button>
+            </div>
+            <button class="btn-cerrar-qr" onclick="cerrarQR()">Cerrar</button>
+        </div>
+    </div>
+
+    <main id="login-screen" class="pantalla activa">
+        <div class="login-box" style="max-width: 360px;">
+            <h1><span class="texto-naranja">Hospital</span> Austin</h1>
+            <p style="margin-bottom: 16px; font-size: 0.85rem; color: #64748b;">Portal Médico de Urgencias</p>
+
+            <div style="display:flex; border-bottom: 2px solid var(--gris-borde); margin-bottom: 18px;">
+                <button id="tab-login" onclick="mostrarTab('login')" style="flex:1; background:none; border:none; padding:8px; font-size:0.85rem; font-weight:700; color:var(--azul-medico); border-bottom: 2px solid var(--azul-medico); margin-bottom:-2px; cursor:pointer;">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+                <button id="tab-registro" onclick="mostrarTab('registro')" style="flex:1; background:none; border:none; padding:8px; font-size:0.85rem; font-weight:600; color:#94a3b8; cursor:pointer;">
+                    <i class="fas fa-user-plus"></i> Crear Cuenta
+                </button>
+            </div>
+
+            <div id="form-login">
+                <p id="msg-login" style="font-size:0.8rem; color:var(--triage-critico); margin-bottom:8px; display:none;"></p>
+                <form onsubmit="event.preventDefault(); accederSistema();">
+                    <div class="campo-login"><i class="fas fa-envelope"></i><input type="text" id="user" placeholder="Correo o usuario" required></div>
+                    <div class="campo-login"><i class="fas fa-lock"></i><input type="password" id="pass" placeholder="Contraseña" required></div>
+                    <button type="submit" class="btn-principal">Entrar al Sistema</button>
+                </form>
+                <p style="font-size:0.75rem; color:#94a3b8; margin-top:12px;">¿No tienes cuenta? <a href="#" onclick="mostrarTab('registro')" style="color:var(--azul-claro); text-decoration:none; font-weight:600;">Regístrate aquí</a></p>
+            </div>
+
+            <div id="form-registro" style="display:none;">
+                <p id="msg-registro" style="font-size:0.8rem; color:var(--triage-critico); margin-bottom:8px; display:none;"></p>
+                <form onsubmit="event.preventDefault(); crearCuenta();">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+                        <div class="campo-login" style="margin-bottom:0;"><i class="fas fa-user"></i><input type="text" id="r-nombres" placeholder="Nombres" required></div>
+                        <div class="campo-login" style="margin-bottom:0;"><i class="fas fa-user"></i><input type="text" id="r-apellidos" placeholder="Apellidos" required></div>
+                    </div>
+                    <div class="campo-login"><i class="fas fa-id-badge"></i><input type="text" id="r-dui" placeholder="DUI / Cédula" required></div>
+                    <div class="campo-login"><i class="fas fa-stethoscope"></i>
+                        <select id="r-rol" style="border:none; background:transparent; padding:10px 0; width:100%; outline:none; font-size:0.9rem; color:#374151;">
+                            <option value="medico">Médico</option>
+                            <option value="enfermero">Enfermero/a</option>
+                            <option value="admin">Administrador</option>
+                            <option value="residente">Residente</option>
+                        </select>
+                    </div>
+                    <div class="campo-login"><i class="fas fa-hospital"></i>
+                        <select id="r-depto" style="border:none; background:transparent; padding:10px 0; width:100%; outline:none; font-size:0.9rem; color:#374151;">
+                            <option value="Urgencias">Urgencias</option>
+                            <option value="Cirugía">Cirugía</option>
+                            <option value="Pediatría">Pediatría</option>
+                            <option value="Cardiología">Cardiología</option>
+                            <option value="Traumatología">Traumatología</option>
+                        </select>
+                    </div>
+                    <div class="campo-login"><i class="fas fa-envelope"></i><input type="email" id="r-email" placeholder="Correo electrónico" required></div>
+                    <div class="campo-login"><i class="fas fa-lock"></i><input type="password" id="r-pass" placeholder="Contraseña" required minlength="6"></div>
+                    <div class="campo-login"><i class="fas fa-lock"></i><input type="password" id="r-pass2" placeholder="Confirmar contraseña" required></div>
+                    <button type="submit" class="btn-principal" style="background:var(--triage-espera);">Crear Cuenta</button>
+                </form>
+                <p style="font-size:0.75rem; color:#94a3b8; margin-top:12px;">¿Ya tienes cuenta? <a href="#" onclick="mostrarTab('login')" style="color:var(--azul-claro); text-decoration:none; font-weight:600;">Inicia sesión</a></p>
+            </div>
+        </div>
+    </main>
+
+    <div id="app-screen" class="pantalla interfaz-medica">
+        <aside class="sidebar">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;"><span class="texto-naranja">H</span> Austin</div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+        </aside>
+
+        <section class="contenido-principal">
+            <header class="topbar">
+                <h2 id="titulo-seccion">Admisión </h2>
+                <div class="controles-topbar">
+                    <div id="doctor-tag" style="font-size: 0.9rem; font-weight: 600; color: var(--azul-claro); display: flex; align-items: center;"></div>
+                </div>
+            </header>
+
+            <div class="area-trabajo">
+
+                <div id="sec-ingreso" class="seccion activa">
+                    <!-- ── BANNER EMERGENCIA (solo modo paciente) ── -->
+                    <div id="banner-emergencia">
+                        <div class="banner-sos-texto">
+                            <i class="fas fa-exclamation-triangle"></i> Línea de Emergencia 24/7
+                            <span>Marca 0069 para atención inmediata</span>
+                        </div>
+                        <a id="btn-sos-tel" href="tel:0069" class="btn-sos-llamar"><i class="fas fa-phone"></i> Llamar 0069</a>
+                        <button class="btn-sos-guardar" onclick="guardarContactoSOS()"><i class="fas fa-address-card"></i> Guardar</button>
+                    </div>
+                    <div class="tarjeta">
+                        <div class="tarjeta-cabecera">Ficha de Nuevo Paciente</div>
+                        <div class="tarjeta-cuerpo">
+                            <form onsubmit="registrarPaciente(event)">
+                                <div class="grid-form">
+                                    <div class="campo"><label>Nombres</label><input type="text" id="p-nom" class="input-dinamico" required></div>
+                                    <div class="campo"><label>Apellidos</label><input type="text" id="p-ape" required></div>
+                                    <div class="campo"><label>DUI / Carnet</label><input type="text" id="p-dni" required></div>
+                                    <div class="campo"><label>Edad</label><input type="number" id="p-edad" required></div>
+                                    <div class="campo"><label>Teléfono</label><input type="tel" id="p-tel" placeholder="Ej: 7777-1234"></div>
+                                </div>
+                                <div class="grid-form">
+                                    <div class="campo ancho-completo">
+                                        <label>Condición Médica</label>
+                                        <select id="p-enfermedad" required onchange="manejarEnfermedad()">
+                                            <option value="">Seleccione...</option>
+                                            <optgroup label="🟢 VERDE — Normal">
+                                                <option value="Resfriado / Gripe" data-color="espera">Resfriado / Gripe</option>
+                                                <option value="Dolor de garganta leve" data-color="espera">Dolor de garganta leve</option>
+                                                <option value="Contusión menor / Golpe leve" data-color="espera">Contusión menor / Golpe leve</option>
+                                                <option value="Revisión de rutina / Control" data-color="espera">Revisión de rutina / Control</option>
+                                                <option value="Conjuntivitis" data-color="espera">Conjuntivitis</option>
+                                            </optgroup>
+                                            <optgroup label="🟡 AMARILLO — Urgente">
+                                                <option value="Fractura / Esguince" data-color="leve">Fractura / Esguince</option>
+                                                <option value="Fiebre alta (mayor de 39°C)" data-color="leve">Fiebre alta (mayor de 39°C)</option>
+                                                <option value="Dolor abdominal moderado" data-color="leve">Dolor abdominal moderado</option>
+                                                <option value="Vómitos persistentes / Deshidratación" data-color="leve">Vómitos persistentes / Deshidratación</option>
+                                                <option value="Crisis asmática leve" data-color="leve">Crisis asmática leve</option>
+                                            </optgroup>
+                                            <optgroup label="🔴 ROJO — Crítico">
+                                                <option value="Sospecha de Infarto" data-color="critico">Sospecha de Infarto</option>
+                                                <option value="Accidente cerebrovascular (ACV)" data-color="critico">Accidente cerebrovascular (ACV)</option>
+                                                <option value="Trauma grave / Politraumatismo" data-color="critico">Trauma grave / Politraumatismo</option>
+                                                <option value="Dificultad respiratoria severa" data-color="critico">Dificultad respiratoria severa</option>
+                                                <option value="Pérdida de consciencia / Convulsiones" data-color="critico">Pérdida de consciencia / Convulsiones</option>
+                                            </optgroup>
+                                            <option value="otra">➕ Otra...</option>
+                                        </select>
+                                        <input type="text" id="p-motivo-otro" placeholder="Especifique..." style="display:none; margin-top:6px;">
+                                    </div>
+                                    <div class="campo">
+                                        <label>Prioridad (Solo Dr.)</label>
+                                        <select id="p-est" required disabled>
+                                            <option value="espera">🟢 Verde</option>
+                                            <option value="leve">🟡 Amarillo</option>
+                                            <option value="critico">🔴 Rojo</option>
+                                        </select>
+                                    </div>
+                                    <div class="campo"><label>Alergias</label><input type="text" id="p-ale" value="Ninguna"></div>
+                                </div>
+                                <button type="submit" class="btn-guardar">Registrar Ingreso</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sec-directorio" class="seccion">
+                    <div class="dashboard-stats">
+                        <div class="stat-card"><div class="stat-info"><span>Total</span><h3 id="st-tot">0</h3></div><div class="stat-icon"><i class="fas fa-users" style="color: var(--azul-claro);"></i></div></div>
+                        <div class="stat-card critico"><div class="stat-info"><span>Crítico</span><h3 id="st-cri">0</h3></div><div class="stat-icon"><i class="fas fa-heartbeat" style="color: var(--triage-critico);"></i></div></div>
+                        <div class="stat-card exito"><div class="stat-info"><span>Libres</span><h3 id="st-lib">0</h3></div><div class="stat-icon"><i class="fas fa-bed" style="color: var(--triage-espera);"></i></div></div>
+                    </div>
+                    <div class="tarjeta">
+                        <div class="tarjeta-cabecera cabecera-con-boton">
+                            <span><i class="fas fa-clipboard-list"></i> Pacientes Activos</span>
+                            <button class="btn-excel" onclick="exportarExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+                        </div>
+                        <div class="tarjeta-cuerpo p-0">
+                            <table class="tabla-profesional">
+                                <thead><tr><th>ID</th><th>Paciente</th><th>Condición</th><th>Cama</th><th>Estado</th><th>Acciones</th></tr></thead>
+                                <tbody id="tbody-pacientes"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sec-chat" class="seccion">
+                    <div class="tarjeta" style="display:flex; flex-direction:column; height: calc(100vh - 140px);">
+                        <div class="tarjeta-cabecera" style="display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-user-md" style="color:var(--azul-claro);"></i>
+                            <span>Dr. Austin IA — Consulta Virtual</span>
+                            <span style="margin-left:auto; font-size:0.7rem; background:#dcfce7; color:#166534; padding:2px 8px; border-radius:10px; font-weight:600;">● En línea</span>
+                        </div>
+                        <div id="chat-mensajes" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; background:#f8fafc;"></div>
+                        <div style="padding:10px 15px; border-top:1px solid var(--gris-borde); display:flex; gap:8px; background:white;">
+                            <input type="text" id="chat-input" placeholder="Describa sus síntomas o haga una pregunta..." style="flex:1; padding:8px 12px; border:1px solid var(--gris-borde); border-radius:20px; outline:none; font-size:0.85rem;" onkeydown="if(event.key==='Enter') enviarMensajeChat()">
+                            <button onclick="enviarMensajeChat()" style="background:var(--azul-claro); color:white; border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:0.9rem; flex-shrink:0;">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sec-camas" class="seccion">
+                    <div class="tarjeta">
+                        <div class="tarjeta-cabecera"><span><i class="fas fa-procedures"></i> Monitor de Camillas</span></div>
+                        <div class="tarjeta-cuerpo"><div id="grid-camas" class="grid-camillas"></div></div>
+                    </div>
+                </div>
+
+                <!-- ── SECCIÓN CITAS (PACIENTE) ── -->
+                <div id="sec-citas" class="seccion">
+                    <div class="tarjeta">
+                        <div class="tarjeta-cabecera"><i class="fas fa-calendar-check" style="color:var(--azul-claro);"></i> Mis Citas Médicas</div>
+                        <div class="tarjeta-cuerpo" id="contenido-citas">
+                            <div class="sin-citas"><i class="fas fa-calendar-times" style="font-size:2rem; display:block; margin-bottom:10px;"></i>No tienes citas agendadas aún.<br>Registra tu ingreso para obtener una cita automática.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <script>
+
+        const WORKER_URL = 'https://royal-butterfly-66e6.w2304w1999.workers.dev/';
+
+        /* ────── DOCTORES FICTICIOS para asignar citas ────── */
+        const DOCTORES_FICTICIOS = [
+            { nombre: 'Dra. María Solano',    especialidad: 'Medicina General',  telefono: '+503 7111-0001' },
+            { nombre: 'Dr. Carlos Fuentes',   especialidad: 'Urgencias',         telefono: '+503 7111-0002' },
+            { nombre: 'Dra. Laura Méndez',    especialidad: 'Traumatología',     telefono: '+503 7111-0003' },
+            { nombre: 'Dr. Roberto Ávila',    especialidad: 'Cardiología',       telefono: '+503 7111-0004' },
+            { nombre: 'Dra. Patricia Reyes',  especialidad: 'Pediatría',         telefono: '+503 7111-0005' },
+        ];
+
+        /* ────── CUENTAS ────── */
+        function obtenerCuentas() {
+            const data = localStorage.getItem('hosp_cuentas');
+            if (data) return JSON.parse(data);
+            return [{ nombres: 'Admin', apellidos: 'Sistema', dui: '00000000-0', rol: 'medico', depto: 'Urgencias', email: 'admin', pass: 'doctor123', esAdmin: true }];
+        }
+        function guardarCuentas(cuentas) { localStorage.setItem('hosp_cuentas', JSON.stringify(cuentas)); }
+
+        function mostrarTab(tab) {
+            const esLogin = tab === 'login';
+            document.getElementById('form-login').style.display = esLogin ? 'block' : 'none';
+            document.getElementById('form-registro').style.display = esLogin ? 'none' : 'block';
+            document.getElementById('tab-login').style.cssText = esLogin
+                ? 'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:700;color:var(--azul-medico);border-bottom:2px solid var(--azul-medico);margin-bottom:-2px;cursor:pointer;'
+                : 'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:600;color:#94a3b8;cursor:pointer;';
+            document.getElementById('tab-registro').style.cssText = !esLogin
+                ? 'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:700;color:var(--azul-medico);border-bottom:2px solid var(--azul-medico);margin-bottom:-2px;cursor:pointer;'
+                : 'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:600;color:#94a3b8;cursor:pointer;';
+        }
+
+        function crearCuenta() {
+            const nombres   = document.getElementById('r-nombres').value.trim();
+            const apellidos = document.getElementById('r-apellidos').value.trim();
+            const dui       = document.getElementById('r-dui').value.trim();
+            const rol       = document.getElementById('r-rol').value;
+            const depto     = document.getElementById('r-depto').value;
+            const email     = document.getElementById('r-email').value.trim().toLowerCase();
+            const pass      = document.getElementById('r-pass').value;
+            const pass2     = document.getElementById('r-pass2').value;
+            const msg       = document.getElementById('msg-registro');
+            if (pass !== pass2) { msg.innerText = 'Las contraseñas no coinciden.'; msg.style.display = 'block'; return; }
+            const cuentas = obtenerCuentas();
+            if (cuentas.find(c => c.email === email)) { msg.innerText = 'Este correo ya está registrado.'; msg.style.display = 'block'; return; }
+            cuentas.push({ nombres, apellidos, dui, rol, depto, email, pass, esAdmin: false });
+            guardarCuentas(cuentas);
+            msg.style.display = 'none';
+            alert(`¡Cuenta creada exitosamente!\nBienvenido/a, ${nombres}.`);
+            mostrarTab('login');
+            document.getElementById('user').value = email;
+        }
+
+        /* ────── ESTADO GLOBAL ────── */
+        let rolActual = 'paciente';
+        let pacientes = [], camillas = [], expCounter = 101, pSeleccionado = null;
+        let citasGuardadas = [];
+        let pacienteQRActual = null;
+
+        function guardarDatos() {
+            localStorage.setItem('hosp_pacientes', JSON.stringify(pacientes));
+            localStorage.setItem('hosp_camillas', JSON.stringify(camillas));
+            localStorage.setItem('hosp_counter', expCounter);
+            localStorage.setItem('hosp_citas', JSON.stringify(citasGuardadas));
+        }
+
+        function cargarDatos() {
+            const p = localStorage.getItem('hosp_pacientes');
+            const c = localStorage.getItem('hosp_camillas');
+            const count = localStorage.getItem('hosp_counter');
+            const cit = localStorage.getItem('hosp_citas');
+            if (p) pacientes = JSON.parse(p);
+            if (count) expCounter = parseInt(count);
+            if (cit) citasGuardadas = JSON.parse(cit);
+            if (c) { camillas = JSON.parse(c); } else {
+                camillas = [1,2,3,4,5,6].map(i => ({ id: 'Cama '+i, ocupada: false, idPaciente: null, paciente: null, estado: 'disponible', tiempoLimpieza: 0 }));
+                guardarDatos();
+            }
+        }
+
+        /* ────── ASIGNACIÓN AUTOMÁTICA DE CITA ────── */
+        function generarCitaAutomatica(paciente) {
+            const ahora = new Date();
+            /* Asigna cita entre 1 y 5 días hábiles en el futuro, en bloques de 30 min */
+            const diasExtra = Math.floor(Math.random() * 5) + 1;
+            const fecha = new Date(ahora);
+            fecha.setDate(fecha.getDate() + diasExtra);
+            /* Evitar sábado (6) y domingo (0) */
+            while (fecha.getDay() === 0 || fecha.getDay() === 6) fecha.setDate(fecha.getDate() + 1);
+            const horas  = [8, 8.5, 9, 9.5, 10, 10.5, 11, 14, 14.5, 15, 15.5, 16];
+            const hIdx   = Math.floor(Math.random() * horas.length);
+            const h      = Math.floor(horas[hIdx]);
+            const m      = horas[hIdx] % 1 === 0.5 ? '30' : '00';
+            const doctor = DOCTORES_FICTICIOS[Math.floor(Math.random() * DOCTORES_FICTICIOS.length)];
+            const diasSemana = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            const meses      = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            const fechaStr   = `${diasSemana[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]} ${fecha.getFullYear()}`;
+            const cita = {
+                id: 'CITA-' + Date.now(),
+                expediente: paciente.id,
+                paciente: `${paciente.nombres} ${paciente.apellidos}`,
+                doctor: doctor.nombre,
+                especialidad: doctor.especialidad,
+                telefonoDoctor: doctor.telefono,
+                motivo: paciente.motivo,
+                fecha: fechaStr,
+                hora: `${String(h).padStart(2,'0')}:${m}`,
+                estado: 'confirmada'
+            };
+            citasGuardadas.unshift(cita);
+            return cita;
+        }
+
+        /* ────── QR ────── */
+        let qrInstance = null;
+
+        function abrirQR(idPaciente) {
+            const p = pacientes.find(x => x.id === idPaciente);
+            if (!p) return;
+            pacienteQRActual = p;
+            document.getElementById('qr-subtitulo').innerText = `${p.nombres} ${p.apellidos} — ${p.id}`;
+            const contenedor = document.getElementById('qr-canvas-container');
+            contenedor.innerHTML = '';
+            /* Construir vCard string para el QR */
+            const vcard = buildVCardString(p);
+            qrInstance = new QRCode(contenedor, {
+                text: vcard,
+                width: 200,
+                height: 200,
+                colorDark: '#1e293b',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+            document.getElementById('modal-qr').classList.add('activa');
+        }
+
+        function buildVCardString(p) {
+            const tel = p.telefono !== 'No registrado' ? p.telefono.replace(/\D/g,'') : '';
+            return `BEGIN:VCARD\nVERSION:3.0\nFN:${p.nombres} ${p.apellidos}\nN:${p.apellidos};${p.nombres};;;\nTEL;TYPE=CELL:${tel}\nNOTE:Expediente:${p.id} | Motivo:${p.motivo} | Estado:${p.estado.toUpperCase()} | Alergias:${p.alergias}\nORG:Hospital Austin\nEND:VCARD`;
+        }
+
+        function descargarQR() {
+            const img = document.querySelector('#qr-canvas-container img');
+            const canvas = document.querySelector('#qr-canvas-container canvas');
+            let src = '';
+            if (canvas) src = canvas.toDataURL('image/png');
+            else if (img) src = img.src;
+            if (!src) return;
+            const a = document.createElement('a');
+            a.href = src;
+            a.download = `QR_${pacienteQRActual.id}.png`;
+            a.click();
+        }
+
+        function descargarVCard() {
+            if (!pacienteQRActual) return;
+            const vcardStr = buildVCardString(pacienteQRActual);
+            const blob = new Blob([vcardStr], { type: 'text/vcard;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${pacienteQRActual.apellidos}_${pacienteQRActual.nombres}.vcf`;
+            a.click();
+        }
+
+        function cerrarQR() { document.getElementById('modal-qr').classList.remove('activa'); }
+
+        function guardarContactoSOS() {
+            const vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:Hospital Austin Emergencias\nTEL;TYPE=WORK,VOICE:0069\nORG:Hospital Austin\nNOTE:Línea de emergencias 24/7\nEND:VCARD';
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([vcard], { type: 'text/vcard;charset=utf-8' }));
+            a.download = 'Hospital_Austin_SOS.vcf';
+            a.click();
+        }
+
+        /* ────── NAVEGACIÓN ────── */
+        function manejarEnfermedad() {
+            const select = document.getElementById('p-enfermedad');
+            const inputOtro = document.getElementById('p-motivo-otro');
+            const selectPrioridad = document.getElementById('p-est');
+            const opcion = select.options[select.selectedIndex];
+            if (select.value === 'otra') { inputOtro.style.display = 'block'; inputOtro.required = true; }
+            else { inputOtro.style.display = 'none'; inputOtro.required = false; if (opcion.dataset.color) selectPrioridad.value = opcion.dataset.color; }
+        }
+
+        function construirNav() {
+            const nav = document.getElementById('sidebar-nav');
+            if (rolActual === 'doctor') {
+                nav.innerHTML = `
+                    <button class="nav-item activo" onclick="cambiarSeccion('sec-ingreso', this)"><i class="fas fa-plus-circle"></i> Admisión</button>
+                    <button class="nav-item" onclick="cambiarSeccion('sec-directorio', this)"><i class="fas fa-address-book"></i> Directorio</button>
+                    <button class="nav-item" onclick="cambiarSeccion('sec-camas', this)"><i class="fas fa-bed"></i> Camillas</button>
+                    <div style="height:1px; background:rgba(255,255,255,0.1); margin:15px 0;"></div>
+                    <button class="nav-item salir" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>`;
+                /* ocultar banner emergencia en modo doctor */
+                document.getElementById('banner-emergencia').classList.remove('visible');
+            } else {
+                nav.innerHTML = `
+                    <button class="nav-item activo" onclick="cambiarSeccion('sec-ingreso', this)"><i class="fas fa-plus-circle"></i> Mi Ingreso</button>
+                    <button class="nav-item" onclick="cambiarSeccion('sec-chat', this)"><i class="fas fa-comment-medical"></i> Consulta IA</button>
+                    <button class="nav-item" onclick="cambiarSeccion('sec-citas', this); renderizarCitas();"><i class="fas fa-calendar-check"></i> Mis Citas</button>
+                    <div style="height:1px; background:rgba(255,255,255,0.1); margin:15px 0;"></div>
+                    <button class="nav-item salir" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>`;
+                /* mostrar banner emergencia en modo paciente */
+                document.getElementById('banner-emergencia').classList.add('visible');
+            }
+        }
+
+        function accederSistema() {
+            const userVal = document.getElementById('user').value.trim();
+            const pass    = document.getElementById('pass').value;
+            const msg     = document.getElementById('msg-login');
+            const tag     = document.getElementById('doctor-tag');
+            msg.style.display = 'none';
+            if (!userVal || !pass) { msg.innerText = 'Ingresa usuario y contraseña.'; msg.style.display = 'block'; return; }
+
+            const cuentas = obtenerCuentas();
+            const cuenta  = cuentas.find(c => c.email.toLowerCase() === userVal.toLowerCase() || c.nombres.toLowerCase() === userVal.toLowerCase());
+            const nombreMostrar = cuenta ? `${cuenta.nombres} ${cuenta.apellidos}` : userVal;
+            const depto = cuenta ? cuenta.depto : 'Invitado';
+
+            if (pass === 'doctor123') {
+                rolActual = 'doctor';
+                tag.innerHTML = `${nombreMostrar} <span style="background:var(--triage-critico);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:8px;">ADMIN</span>`;
+                document.getElementById('p-est').disabled = false;
+            } else {
+                rolActual = 'paciente';
+                tag.innerHTML = `${nombreMostrar} <span style="background:var(--azul-claro);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:8px;">${depto}</span>`;
+                document.getElementById('p-est').disabled = true;
+            }
+            construirNav();
+            document.getElementById('login-screen').classList.remove('activa');
+            document.getElementById('app-screen').classList.add('activa');
+            if (rolActual === 'paciente') {
+                historialChat = [];
+                setTimeout(() => agregarMensajeChat('bot', `Hola, soy el Dr. Austin IA 👨‍⚕️. Estoy aquí para orientarte sobre tu situación médica mientras esperas atención. ¿Cuál es tu motivo de consulta hoy?`), 300);
+            }
+            actualizarUI();
+        }
+
+        function cerrarSesion() { location.reload(); }
+
+        function cambiarSeccion(id, btn) {
+            document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('activo'));
+            document.getElementById(id).classList.add('activa');
+            btn.classList.add('activo');
+            document.getElementById('titulo-seccion').innerText = btn.innerText.trim();
+        }
+
+        /* ────── REGISTRAR PACIENTE ────── */
+        function registrarPaciente(e) {
+            e.preventDefault();
+            document.getElementById('pantalla-carga').classList.add('activa');
+            setTimeout(() => {
+                let motivo = document.getElementById('p-enfermedad').value;
+                if (motivo === 'otra') motivo = document.getElementById('p-motivo-otro').value;
+                const nuevo = {
+                    id: 'EXP-' + expCounter++,
+                    nombres: document.getElementById('p-nom').value,
+                    apellidos: document.getElementById('p-ape').value,
+                    dni: document.getElementById('p-dni').value,
+                    edad: document.getElementById('p-edad').value,
+                    telefono: document.getElementById('p-tel').value || 'No registrado',
+                    motivo: motivo,
+                    alergias: document.getElementById('p-ale').value,
+                    estado: document.getElementById('p-est').value,
+                    cama: "En Espera"
+                };
+                for (let c of camillas) {
+                    if (!c.ocupada && c.estado === 'disponible') {
+                        c.ocupada = true; c.idPaciente = nuevo.id;
+                        c.paciente = nuevo.apellidos + ', ' + nuevo.nombres;
+                        c.estado = nuevo.estado; nuevo.cama = c.id; break;
+                    }
+                }
+                pacientes.unshift(nuevo);
+
+                /* Generar cita automática siempre */
+                const cita = generarCitaAutomatica(nuevo);
+
+                guardarDatos();
+                e.target.reset();
+                document.getElementById('p-ale').value = 'Ninguna';
+                document.getElementById('pantalla-carga').classList.remove('activa');
+                actualizarUI();
+
+                /* Si es doctor → mostrar QR */
+                if (rolActual === 'doctor') {
+                    setTimeout(() => abrirQR(nuevo.id), 200);
+                } else {
+                    /* Si es paciente → mostrar banner de cita asignada */
+                    setTimeout(() => {
+                        alert(`✅ Ingreso registrado.\n\n📅 Cita asignada automáticamente:\n• Doctor: ${cita.doctor}\n• Especialidad: ${cita.especialidad}\n• Fecha: ${cita.fecha}\n• Hora: ${cita.hora}\n\nPuedes ver tus citas en "Mis Citas" del menú.`);
+                    }, 300);
+                }
+            }, 500);
+        }
+
+        /* ────── RENDER CITAS ────── */
+        function cancelarCita(idCita) {
+            citasGuardadas = citasGuardadas.filter(c => c.id !== idCita);
+            guardarDatos();
+            renderizarCitas();
+        }
+
+        function renderizarCitas() {
+            const cont = document.getElementById('contenido-citas');
+            if (citasGuardadas.length === 0) {
+                cont.innerHTML = `<div class="sin-citas"><i class="fas fa-calendar-times" style="font-size:2rem; display:block; margin-bottom:10px;"></i>No tienes citas agendadas aún.<br>Registra tu ingreso para obtener una cita automática.</div>`;
+                return;
+            }
+            cont.innerHTML = citasGuardadas.map(c => `
+                <div class="cita-card" style="position:relative;">
+                    <button onclick="cancelarCita('${c.id}')" title="Cancelar cita" style="position:absolute; top:8px; right:8px; background:none; border:none; cursor:pointer; color:var(--triage-critico); font-size:0.85rem; line-height:1; padding:2px 4px; border-radius:4px;" onmouseover="this.style.background='#fff1f1'" onmouseout="this.style.background='none'"><i class="fas fa-times"></i></button>
+                    <div class="cita-icono"><i class="fas fa-stethoscope"></i></div>
+                    <div class="cita-info">
+                        <h4>${c.doctor} <span style="font-weight:400; color:#64748b; font-size:0.78rem;">— ${c.especialidad}</span></h4>
+                        <p><i class="fas fa-user" style="font-size:0.7rem;"></i> ${c.paciente} &nbsp;|&nbsp; <i class="fas fa-file-medical" style="font-size:0.7rem;"></i> ${c.expediente}</p>
+                        <p style="margin-top:3px;"><i class="fas fa-calendar" style="font-size:0.7rem;"></i> ${c.fecha} &nbsp; <i class="fas fa-clock" style="font-size:0.7rem;"></i> ${c.hora}</p>
+                        <p style="margin-top:2px; color:#64748b; font-size:0.75rem;"><i class="fas fa-notes-medical" style="font-size:0.7rem;"></i> ${c.motivo}</p>
+                    </div>
+                    <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0; padding-right:20px;">
+                        <span class="badge-cita ${c.estado === 'confirmada' ? 'badge-confirmada' : 'badge-pendiente'}">${c.estado === 'confirmada' ? '✓ Confirmada' : 'Pendiente'}</span>
+                        <a href="tel:${c.telefonoDoctor.replace(/\D/g,'')}" style="font-size:0.72rem; color:var(--azul-claro); text-decoration:none; font-weight:600;"><i class="fas fa-phone"></i> Llamar</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* ────── ALTA ────── */
+        function darDeAlta(id) {
+            pSeleccionado = id;
+            document.getElementById('nombre-paciente-alta').innerText = id;
+            document.getElementById('modal-alta').classList.add('activa');
+        }
+
+        function ejecutarAlta() {
+            pacientes = pacientes.filter(p => p.id !== pSeleccionado);
+            camillas.forEach(c => {
+                if (c.idPaciente === pSeleccionado) { c.ocupada = false; c.idPaciente = null; c.paciente = null; c.estado = 'mantenimiento'; c.tiempoLimpieza = 10; }
+            });
+            /* Eliminar citas asociadas al expediente dado de alta */
+            citasGuardadas = citasGuardadas.filter(cita => cita.expediente !== pSeleccionado);
+            cerrarModalAlta(); guardarDatos(); actualizarUI();
+        }
+
+        function mandarDesinfeccion(idCama) {
+            let cama = camillas.find(c => c.id === idCama);
+            if (cama && cama.estado === 'disponible') { cama.estado = 'mantenimiento'; cama.tiempoLimpieza = 10; guardarDatos(); actualizarUI(); }
+        }
+
+        /* ────── ACTUALIZAR UI ────── */
+        function actualizarUI() {
+            const tbody = document.getElementById('tbody-pacientes');
+            tbody.innerHTML = '';
+            pacientes.forEach(p => {
+                let color = p.estado === 'critico' ? 'var(--triage-critico)' : p.estado === 'leve' ? 'var(--triage-leve)' : 'var(--triage-espera)';
+                let btns = '';
+                if (rolActual === 'doctor') {
+                    btns = `<button class="btn-alta" onclick="darDeAlta('${p.id}')" title="Alta"><i class="fas fa-sign-out-alt"></i></button>
+                            <button class="btn-alta" style="margin-left:4px; border-color:var(--azul-claro); color:var(--azul-claro);" onclick="abrirQR('${p.id}')" title="Ver QR"><i class="fas fa-qrcode"></i></button>`;
+                }
+                tbody.innerHTML += `<tr><td><strong>${p.id}</strong></td><td>${p.apellidos}, ${p.nombres}</td><td>${p.motivo}</td><td>${p.cama}</td><td style="font-weight:700; color:${color}">${p.estado.toUpperCase()}</td><td>${btns}</td></tr>`;
+            });
+            const grid = document.getElementById('grid-camas');
+            grid.innerHTML = '';
+            camillas.forEach(c => {
+                let clase = c.ocupada ? 'ocupada-' + c.estado : c.estado;
+                let btn = '';
+                if (rolActual === 'doctor') {
+                    if (c.ocupada) btn = `<button class="btn-alta-camilla" onclick="darDeAlta('${c.idPaciente}')">Alta</button>`;
+                    else if (c.estado === 'disponible') btn = `<button class="btn-secundario" style="width:100%; font-size:0.7rem; margin-top:5px;" onclick="mandarDesinfeccion('${c.id}')">Limpiar</button>`;
+                }
+                grid.innerHTML += `<div class="camilla ${clase}"><h4>${c.id}</h4><p>${c.ocupada ? c.paciente : c.estado === 'mantenimiento' ? 'Limpieza...' : 'Libre'}</p>${c.tiempoLimpieza > 0 ? `<span class="timer-cama">${c.tiempoLimpieza}s</span>` : ''}${btn}</div>`;
+            });
+            document.getElementById('st-tot').innerText = pacientes.length;
+            document.getElementById('st-cri').innerText = pacientes.filter(p => p.estado === 'critico').length;
+            document.getElementById('st-lib').innerText = camillas.filter(c => c.estado === 'disponible').length;
+        }
+
+        function cerrarModalAlta() { document.getElementById('modal-alta').classList.remove('activa'); }
+
+        function exportarExcel() {
+            let csv = "\uFEFFExpediente;Paciente;DNI;Edad;Motivo;Cama;Estado\n";
+            pacientes.forEach(p => { csv += `${p.id};${p.nombres} ${p.apellidos};${p.dni};${p.edad};${p.motivo};${p.cama};${p.estado}\n`; });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+            a.download = 'Reporte_Hospital.csv'; a.click();
+        }
+
+        setInterval(() => {
+            let cambio = false;
+            camillas.forEach(c => {
+                if (c.estado === 'mantenimiento' && c.tiempoLimpieza > 0) {
+                    c.tiempoLimpieza--;
+                    if (c.tiempoLimpieza === 0) c.estado = 'disponible';
+                    cambio = true;
+                }
+            });
+            if (cambio) { guardarDatos(); actualizarUI(); }
+        }, 1000);
+
+        /* ────── CHAT IA ────── */
+        let historialChat = [];
+
+        function agregarMensajeChat(tipo, texto) {
+            const cont = document.getElementById('chat-mensajes');
+            const burbuja = document.createElement('div');
+            const esBot = tipo === 'bot';
+            burbuja.style.cssText = `display:flex; justify-content:${esBot ? 'flex-start' : 'flex-end'};`;
+            burbuja.innerHTML = `
+                <div style="max-width:75%; padding:10px 14px; border-radius:${esBot ? '4px 16px 16px 16px' : '16px 4px 16px 16px'}; background:${esBot ? 'white' : 'var(--azul-claro)'}; color:${esBot ? 'var(--gris-texto)' : 'white'}; border:${esBot ? '1px solid var(--gris-borde)' : 'none'}; font-size:0.85rem; line-height:1.5; box-shadow: 0 1px 2px rgba(0,0,0,0.06);">
+                    ${esBot ? '<span style="font-size:0.7rem; font-weight:700; color:var(--azul-claro); display:block; margin-bottom:3px;">Dr. Austin IA</span>' : ''}
+                    ${texto}
+                </div>`;
+            cont.appendChild(burbuja);
+            cont.scrollTop = cont.scrollHeight;
+        }
+
+        function mostrarTyping() {
+            const cont = document.getElementById('chat-mensajes');
+            const typing = document.createElement('div');
+            typing.id = 'typing-indicator';
+            typing.style.cssText = 'display:flex; justify-content:flex-start;';
+            typing.innerHTML = `<div style="padding:10px 14px; border-radius:4px 16px 16px 16px; background:white; border:1px solid var(--gris-borde); font-size:0.8rem; color:#94a3b8;">Dr. Austin está escribiendo...</div>`;
+            cont.appendChild(typing);
+            cont.scrollTop = cont.scrollHeight;
+        }
+
+        function quitarTyping() { const t = document.getElementById('typing-indicator'); if (t) t.remove(); }
+
+        async function enviarMensajeChat() {
+            const input = document.getElementById('chat-input');
+            const texto = input.value.trim();
+            if (!texto) return;
+            input.value = '';
+            agregarMensajeChat('usuario', texto);
+            historialChat.push({ role: 'user', content: texto });
+            mostrarTyping();
+            try {
+                const resp = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system: `Eres el Dr. Austin, un médico virtual de urgencias del Hospital Austin. Tu rol es orientar al paciente sobre su situación médica de forma empática, clara y profesional.
+- Haz preguntas relevantes para entender mejor sus síntomas.
+- Indica si su situación parece urgente o no, usando el sistema de triage: Verde (no urgente), Amarillo (urgente), Rojo (crítico).
+- Nunca des diagnósticos definitivos, siempre recuerda que el médico presencial tomará la decisión final.
+- Responde siempre en español, de forma concisa (máximo 3-4 oraciones por respuesta).
+- Si detectas síntomas críticos (dolor en el pecho, dificultad para respirar, pérdida de consciencia), alerta de inmediato.`,
+                        messages: historialChat
+                    })
+                });
+                const data = await resp.json();
+                quitarTyping();
+                const respuesta = data.content[0].text;
+                historialChat.push({ role: 'assistant', content: respuesta });
+                agregarMensajeChat('bot', respuesta);
+            } catch (err) {
+                quitarTyping();
+                agregarMensajeChat('bot', 'Lo siento, hubo un problema de conexión. Por favor intente nuevamente.');
+            }
+        }
+
+        cargarDatos();
+        actualizarUI();
+    </script>
+</body>
+</html>
