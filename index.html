@@ -59,7 +59,6 @@
         .nav-item.activo { background: rgba(59,130,246,0.2); color: #93c5fd; }
         .nav-item.salir { color: #f87171; margin-top: auto; }
 
-
         .btn-hamburguesa { display: none; }
 
         .contenido-principal { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
@@ -121,7 +120,7 @@
         .btn-vcard { padding: 8px 18px; background: #16a34a; color: white; border: none; border-radius: 8px; font-size: 0.83rem; font-weight: 600; cursor: pointer; }
         .btn-cerrar-qr { display: block; margin-top: 12px; width: 100%; padding: 7px; background: none; border: 1px solid var(--gris-borde); border-radius: 8px; cursor: pointer; font-size: 0.83rem; color: #64748b; }
 
-        /* Emergencia */
+
         #banner-emergencia { display: none; align-items: center; justify-content: space-between; background: #fff1f1; border: 1.5px solid var(--triage-critico); border-radius: 10px; padding: 11px 16px; margin-bottom: 14px; gap: 12px; }
         #banner-emergencia.visible { display: flex; }
         .banner-sos-texto { font-size: 0.83rem; font-weight: 600; color: #b91c1c; flex: 1; }
@@ -130,7 +129,7 @@
         .btn-sos-guardar { display: flex; align-items: center; gap: 7px; padding: 8px 14px; background: none; border: 1.5px solid var(--triage-critico); color: var(--triage-critico); border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
         @keyframes pulso-sos { 0%{box-shadow:0 0 0 0 rgba(239,68,68,0.45);}70%{box-shadow:0 0 0 8px rgba(239,68,68,0);}100%{box-shadow:0 0 0 0 rgba(239,68,68,0);} }
 
-        /* Citas */
+
         .cita-card { background: white; border: 1px solid var(--gris-borde); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
         .cita-icono { width: 42px; height: 42px; border-radius: 50%; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--azul-claro); flex-shrink: 0; }
         .cita-info { flex: 1; }
@@ -150,73 +149,67 @@
         .caja-editar-cita input, .caja-editar-cita select { width: 100%; padding: 7px 10px; border: 1px solid var(--gris-borde); border-radius: 6px; font-size: 0.85rem; outline: none; }
 
 
+        #modal-ingreso-ok { position: fixed; inset: 0; background: rgba(15,23,42,0.55); display: none; align-items: center; justify-content: center; z-index: 1060; padding: 16px; }
+        #modal-ingreso-ok.activa { display: flex; }
+        .caja-ingreso-ok {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+            animation: slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes slideUp { from { opacity:0; transform: translateY(28px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+        .ingreso-ok-header {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            padding: 28px 24px 22px;
+            text-align: center;
+            position: relative;
+        }
+        .ingreso-ok-check {
+            width: 60px; height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px;
+            font-size: 1.8rem;
+            color: white;
+        }
+        .ingreso-ok-header h2 { color: white; font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+        .ingreso-ok-header p { color: rgba(255,255,255,0.82); font-size: 0.82rem; }
+        .ingreso-ok-body { padding: 20px 24px; }
+        .ingreso-ok-exp {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;
+            padding: 10px 14px; margin-bottom: 16px;
+        }
+        .ingreso-ok-exp span { font-size: 0.78rem; color: #166534; font-weight: 600; }
+        .ingreso-ok-exp strong { font-size: 1rem; color: #15803d; font-family: monospace; letter-spacing: 1px; }
+        .ingreso-ok-cita-titulo { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .ingreso-ok-cita-titulo::after { content:''; flex:1; height:1px; background:var(--gris-borde); }
+        .ingreso-ok-fila { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+        .ingreso-ok-fila-icono { width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: var(--azul-claro); font-size: 0.85rem; flex-shrink: 0; }
+        .ingreso-ok-fila-texto span { font-size: 0.72rem; color: #94a3b8; display: block; }
+        .ingreso-ok-fila-texto strong { font-size: 0.85rem; color: var(--gris-texto); }
+        .ingreso-ok-footer { padding: 0 24px 20px; }
+        .btn-ingreso-ok { width: 100%; padding: 11px; background: var(--azul-medico); color: white; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s; }
+        .btn-ingreso-ok:hover { background: var(--azul-claro); }
+        .ingreso-ok-nota { font-size: 0.74rem; color: #94a3b8; text-align: center; margin-top: 10px; }
+
+
         @media (max-width: 768px) {
-
-
-            .sidebar {
-                width: 100%;
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0 14px;
-                height: 52px;
-                position: fixed;
-                top: 0; left: 0; right: 0;
-                z-index: 300;
-            }
+            .sidebar { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; padding: 0 14px; height: 52px; position: fixed; top: 0; left: 0; right: 0; z-index: 300; }
             .sidebar-logo { margin-bottom: 0; font-size: 1rem; }
-
-
-            .sidebar-nav {
-                position: fixed;
-                top: 52px;
-                left: -240px;      
-                width: 220px;
-                height: calc(100vh - 52px);
-                background: #1e293b;
-                flex-direction: column;
-                gap: 0;
-                padding: 14px 10px 20px;
-                z-index: 299;
-                box-shadow: 4px 0 24px rgba(0,0,0,0.4);
-                transition: left 0.26s cubic-bezier(0.4,0,0.2,1);
-                overflow-y: auto;
-                display: flex !important;   
-            }
+            .sidebar-nav { position: fixed; top: 52px; left: -240px; width: 220px; height: calc(100vh - 52px); background: #1e293b; flex-direction: column; gap: 0; padding: 14px 10px 20px; z-index: 299; box-shadow: 4px 0 24px rgba(0,0,0,0.4); transition: left 0.26s cubic-bezier(0.4,0,0.2,1); overflow-y: auto; display: flex !important; }
             .sidebar-nav.abierto { left: 0; }
-
-
-            #nav-overlay {
-                display: none;
-                position: fixed;
-                top: 52px; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.45);
-                z-index: 298;
-            }
+            #nav-overlay { display: none; position: fixed; top: 52px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 298; }
             #nav-overlay.visible { display: block; }
-
-
-            .btn-hamburguesa {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: none;
-                border: none;
-                color: #94a3b8;
-                font-size: 1.3rem;
-                cursor: pointer;
-                padding: 6px 8px;
-                border-radius: 6px;
-                transition: color 0.15s;
-            }
+            .btn-hamburguesa { display: flex; align-items: center; justify-content: center; background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; }
             .btn-hamburguesa:hover { color: white; }
-
             .nav-item { padding: 12px 14px; font-size: 0.88rem; }
             .nav-item.salir { margin-top: 20px; }
-
-
             .contenido-principal { padding-top: 52px; }
-
             .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
             .topbar h2 { font-size: 0.88rem; }
             #doctor-tag { font-size: 0.78rem !important; }
@@ -232,7 +225,6 @@
             .btn-sos-llamar, .btn-sos-guardar { font-size: 0.78rem; padding: 7px 12px; }
             .login-box { margin: 16px; padding: 20px; }
         }
-
         @media (max-width: 420px) {
             .dashboard-stats { grid-template-columns: 1fr 1fr; }
             .grid-form { grid-template-columns: 1fr; }
@@ -293,6 +285,56 @@
         </div>
     </div>
 
+    <!-- ── MODAL CONFIRMACIÓN INGRESO ── -->
+    <div id="modal-ingreso-ok">
+        <div class="caja-ingreso-ok">
+            <div class="ingreso-ok-header">
+                <div class="ingreso-ok-check"><i class="fas fa-check"></i></div>
+                <h2>¡Ingreso Registrado!</h2>
+                <p id="iok-nombre-paciente">Paciente registrado exitosamente en el sistema</p>
+            </div>
+            <div class="ingreso-ok-body">
+                <div class="ingreso-ok-exp">
+                    <span><i class="fas fa-id-card" style="margin-right:6px;"></i>N° de Expediente</span>
+                    <strong id="iok-expediente">EXP-101</strong>
+                </div>
+                <div class="ingreso-ok-cita-titulo"><i class="fas fa-calendar-check" style="color:var(--azul-claro);"></i> Cita Asignada Automáticamente</div>
+                <div class="ingreso-ok-fila">
+                    <div class="ingreso-ok-fila-icono"><i class="fas fa-user-md"></i></div>
+                    <div class="ingreso-ok-fila-texto">
+                        <span>Médico asignado</span>
+                        <strong id="iok-doctor">—</strong>
+                    </div>
+                </div>
+                <div class="ingreso-ok-fila">
+                    <div class="ingreso-ok-fila-icono"><i class="fas fa-calendar"></i></div>
+                    <div class="ingreso-ok-fila-texto">
+                        <span>Fecha de cita</span>
+                        <strong id="iok-fecha">—</strong>
+                    </div>
+                </div>
+                <div class="ingreso-ok-fila">
+                    <div class="ingreso-ok-fila-icono"><i class="fas fa-clock"></i></div>
+                    <div class="ingreso-ok-fila-texto">
+                        <span>Hora</span>
+                        <strong id="iok-hora">—</strong>
+                    </div>
+                </div>
+                <div class="ingreso-ok-fila">
+                    <div class="ingreso-ok-fila-icono"><i class="fas fa-bed"></i></div>
+                    <div class="ingreso-ok-fila-texto">
+                        <span>Cama asignada</span>
+                        <strong id="iok-cama">—</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="ingreso-ok-footer">
+                <button class="btn-ingreso-ok" onclick="cerrarIngresoOk()"><i class="fas fa-check-circle"></i> Entendido</button>
+                <p class="ingreso-ok-nota">Puedes ver tu cita completa en <strong>"Mis Citas"</strong> del menú lateral</p>
+            </div>
+        </div>
+    </div>
+
     <main id="login-screen" class="pantalla activa">
         <div class="login-box" style="max-width:360px;">
             <h1><span class="texto-naranja">Hospital</span> Austin</h1>
@@ -317,9 +359,8 @@
                         <div class="campo-login" style="margin-bottom:0;"><i class="fas fa-user"></i><input type="text" id="r-nombres" placeholder="Nombres" required></div>
                         <div class="campo-login" style="margin-bottom:0;"><i class="fas fa-user"></i><input type="text" id="r-apellidos" placeholder="Apellidos" required></div>
                     </div>
-                    <div class="campo-login"><i class="fas fa-id-badge"></i><input type="text" id="r-dui" placeholder="DUI / Cédula" required></div>
-                    <div class="campo-login"><i class="fas fa-stethoscope"></i><select id="r-rol" style="border:none;background:transparent;padding:10px 0;width:100%;outline:none;font-size:0.9rem;color:#374151;"><option value="medico">Médico</option><option value="enfermero">Enfermero/a</option><option value="admin">Administrador</option><option value="residente">Residente</option></select></div>
-                    <div class="campo-login"><i class="fas fa-hospital"></i><select id="r-depto" style="border:none;background:transparent;padding:10px 0;width:100%;outline:none;font-size:0.9rem;color:#374151;"><option value="Urgencias">Urgencias</option><option value="Cirugía">Cirugía</option><option value="Pediatría">Pediatría</option><option value="Cardiología">Cardiología</option><option value="Traumatología">Traumatología</option></select></div>
+                    <div class="campo-login"><i class="fas fa-id-badge"></i><input type="text" id="r-dui" placeholder="DUI / Carnet" required></div>
+                    <div class="campo-login"><i class="fas fa-stethoscope"></i><select id="r-rol" style="border:none;background:transparent;padding:10px 0;width:100%;outline:none;font-size:0.9rem;color:#374151;"><option value="admin">Administrador</option><option value="paciente">Paciente</option></select></div>
                     <div class="campo-login"><i class="fas fa-envelope"></i><input type="email" id="r-email" placeholder="Correo electrónico" required></div>
                     <div class="campo-login"><i class="fas fa-lock"></i><input type="password" id="r-pass" placeholder="Contraseña" required minlength="6"></div>
                     <div class="campo-login"><i class="fas fa-lock"></i><input type="password" id="r-pass2" placeholder="Confirmar contraseña" required></div>
@@ -332,12 +373,10 @@
 
     <div id="app-screen" class="pantalla interfaz-medica">
 
-        <!-- Overlay que cierra el menú al tocar fuera -->
         <div id="nav-overlay" onclick="cerrarMenu()"></div>
 
         <aside class="sidebar">
             <div class="sidebar-logo"><span>H</span> Austin</div>
-            <!-- Botón ☰ — solo visible en móvil via CSS -->
             <button class="btn-hamburguesa" id="btn-hamburguesa" onclick="toggleMenu()" aria-label="Abrir menú">
                 <i class="fas fa-bars" id="icono-hamburguesa"></i>
             </button>
@@ -346,7 +385,7 @@
 
         <section class="contenido-principal">
             <header class="topbar">
-                <h2 id="titulo-seccion">Admisión y Triaje</h2>
+                <h2 id="titulo-seccion">Admisión </h2>
                 <div id="doctor-tag" style="font-size:0.9rem;font-weight:600;color:var(--azul-claro);display:flex;align-items:center;"></div>
             </header>
             <div class="area-trabajo">
@@ -364,7 +403,7 @@
                                 <div class="grid-form">
                                     <div class="campo"><label>Nombres</label><input type="text" id="p-nom" required></div>
                                     <div class="campo"><label>Apellidos</label><input type="text" id="p-ape" required></div>
-                                    <div class="campo"><label>DUI / DNI</label><input type="text" id="p-dni" required></div>
+                                    <div class="campo"><label>DUI / Carnet</label><input type="text" id="p-dni" required></div>
                                     <div class="campo"><label>Edad</label><input type="number" id="p-edad" required></div>
                                     <div class="campo"><label>Teléfono</label><input type="tel" id="p-tel" placeholder="Ej: 7777-1234"></div>
                                 </div>
@@ -469,40 +508,38 @@
             {nombre:'Dra. Patricia Reyes',especialidad:'Pediatría',telefono:'+503 7111-0005'},
         ];
 
+
         function toggleMenu() {
-            const nav = document.getElementById('sidebar-nav');
-            const ov  = document.getElementById('nav-overlay');
-            const ico = document.getElementById('icono-hamburguesa');
-            const abierto = nav.classList.toggle('abierto');
-            ov.classList.toggle('visible', abierto);
-            ico.className = abierto ? 'fas fa-times' : 'fas fa-bars';
+            const nav=document.getElementById('sidebar-nav'),ov=document.getElementById('nav-overlay'),ico=document.getElementById('icono-hamburguesa');
+            const ab=nav.classList.toggle('abierto');ov.classList.toggle('visible',ab);ico.className=ab?'fas fa-times':'fas fa-bars';
         }
         function cerrarMenu() {
             document.getElementById('sidebar-nav').classList.remove('abierto');
             document.getElementById('nav-overlay').classList.remove('visible');
-            document.getElementById('icono-hamburguesa').className = 'fas fa-bars';
+            document.getElementById('icono-hamburguesa').className='fas fa-bars';
         }
+
 
         function obtenerCuentas() {
-            const d = localStorage.getItem('hosp_cuentas');
-            return d ? JSON.parse(d) : [{nombres:'Admin',apellidos:'Sistema',dui:'00000000-0',rol:'medico',depto:'Urgencias',email:'admin',pass:'doctor123',esAdmin:true}];
+            const d=localStorage.getItem('hosp_cuentas');
+            return d?JSON.parse(d):[{nombres:'Admin',apellidos:'Sistema',dui:'00000000-0',rol:'medico',depto:'Urgencias',email:'admin',pass:'doctor123',esAdmin:true}];
         }
-        function guardarCuentas(c) { localStorage.setItem('hosp_cuentas', JSON.stringify(c)); }
+        function guardarCuentas(c){localStorage.setItem('hosp_cuentas',JSON.stringify(c));}
 
         function mostrarTab(tab) {
-            const l = tab==='login';
-            document.getElementById('form-login').style.display = l?'block':'none';
-            document.getElementById('form-registro').style.display = l?'none':'block';
-            document.getElementById('tab-login').style.cssText = l?'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:700;color:var(--azul-medico);border-bottom:2px solid var(--azul-medico);margin-bottom:-2px;cursor:pointer;':'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:600;color:#94a3b8;cursor:pointer;';
-            document.getElementById('tab-registro').style.cssText = !l?'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:700;color:var(--azul-medico);border-bottom:2px solid var(--azul-medico);margin-bottom:-2px;cursor:pointer;':'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:600;color:#94a3b8;cursor:pointer;';
+            const l=tab==='login';
+            document.getElementById('form-login').style.display=l?'block':'none';
+            document.getElementById('form-registro').style.display=l?'none':'block';
+            document.getElementById('tab-login').style.cssText=l?'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:700;color:var(--azul-medico);border-bottom:2px solid var(--azul-medico);margin-bottom:-2px;cursor:pointer;':'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:600;color:#94a3b8;cursor:pointer;';
+            document.getElementById('tab-registro').style.cssText=!l?'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:700;color:var(--azul-medico);border-bottom:2px solid var(--azul-medico);margin-bottom:-2px;cursor:pointer;':'flex:1;background:none;border:none;padding:8px;font-size:0.85rem;font-weight:600;color:#94a3b8;cursor:pointer;';
         }
 
         function crearCuenta() {
-            const n=document.getElementById('r-nombres').value.trim(),a=document.getElementById('r-apellidos').value.trim(),d=document.getElementById('r-dui').value.trim(),r=document.getElementById('r-rol').value,dep=document.getElementById('r-depto').value,em=document.getElementById('r-email').value.trim().toLowerCase(),p=document.getElementById('r-pass').value,p2=document.getElementById('r-pass2').value,msg=document.getElementById('msg-registro');
+            const n=document.getElementById('r-nombres').value.trim(),a=document.getElementById('r-apellidos').value.trim(),d=document.getElementById('r-dui').value.trim(),r=document.getElementById('r-rol').value,em=document.getElementById('r-email').value.trim().toLowerCase(),p=document.getElementById('r-pass').value,p2=document.getElementById('r-pass2').value,msg=document.getElementById('msg-registro');
             if(p!==p2){msg.innerText='Las contraseñas no coinciden.';msg.style.display='block';return;}
             const c=obtenerCuentas();
             if(c.find(x=>x.email===em)){msg.innerText='Este correo ya está registrado.';msg.style.display='block';return;}
-            c.push({nombres:n,apellidos:a,dui:d,rol:r,depto:dep,email:em,pass:p,esAdmin:false});
+            c.push({nombres:n,apellidos:a,dui:d,rol:r,depto:'Hospital Austin',email:em,pass:p,esAdmin:false});
             guardarCuentas(c);msg.style.display='none';
             alert(`¡Cuenta creada!\nBienvenido/a, ${n}.`);mostrarTab('login');document.getElementById('user').value=em;
         }
@@ -515,7 +552,7 @@
         function guardarDatos(){localStorage.setItem('hosp_pacientes',JSON.stringify(pacientes));localStorage.setItem('hosp_camillas',JSON.stringify(camillas));localStorage.setItem('hosp_counter',expCounter);localStorage.setItem('hosp_citas',JSON.stringify(citasGuardadas));}
         function cargarDatos(){
             const p=localStorage.getItem('hosp_pacientes'),c=localStorage.getItem('hosp_camillas'),n=localStorage.getItem('hosp_counter'),ci=localStorage.getItem('hosp_citas');
-            if(p) pacientes=JSON.parse(p);if(n) expCounter=parseInt(n);if(ci) citasGuardadas=JSON.parse(ci);
+            if(p)pacientes=JSON.parse(p);if(n)expCounter=parseInt(n);if(ci)citasGuardadas=JSON.parse(ci);
             if(c){camillas=JSON.parse(c);}else{camillas=[1,2,3,4,5,6].map(i=>({id:'Cama '+i,ocupada:false,idPaciente:null,paciente:null,estado:'disponible',tiempoLimpieza:0}));guardarDatos();}
         }
 
@@ -530,6 +567,20 @@
             const mm=String(f.getMonth()+1).padStart(2,'0'),dd=String(f.getDate()).padStart(2,'0');
             const cita={id:'CITA-'+Date.now(),expediente:pac.id,paciente:`${pac.nombres} ${pac.apellidos}`,doctor:dn,especialidad:de,telefonoDoctor:dt,motivo:pac.motivo,fecha:`${dias[f.getDay()]} ${f.getDate()} ${mes[f.getMonth()]} ${f.getFullYear()}`,fechaISO:`${f.getFullYear()}-${mm}-${dd}`,hora:`${String(h).padStart(2,'0')}:${m}`,estado:'confirmada'};
             citasGuardadas.unshift(cita);return cita;
+        }
+
+
+        function mostrarIngresoOk(paciente, cita) {
+            document.getElementById('iok-nombre-paciente').innerText = `${paciente.nombres} ${paciente.apellidos}`;
+            document.getElementById('iok-expediente').innerText = paciente.id;
+            document.getElementById('iok-doctor').innerText = cita.doctor;
+            document.getElementById('iok-fecha').innerText = cita.fecha;
+            document.getElementById('iok-hora').innerText = cita.hora;
+            document.getElementById('iok-cama').innerText = paciente.cama;
+            document.getElementById('modal-ingreso-ok').classList.add('activa');
+        }
+        function cerrarIngresoOk() {
+            document.getElementById('modal-ingreso-ok').classList.remove('activa');
         }
 
 
@@ -563,8 +614,7 @@
                     <button class="nav-item salir" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>`;
                 document.getElementById('banner-emergencia').classList.add('visible');
             }
-
-            nav.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click', cerrarMenu));
+            nav.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',cerrarMenu));
         }
 
         function accederSistema(){
@@ -575,6 +625,9 @@
             const nm=ct?`${ct.nombres} ${ct.apellidos}`:uv,dep=ct?ct.depto:'Invitado';
             if(ps==='doctor123'){
                 rolActual='doctor';nombreDoctorActual=ct?`${ct.nombres} ${ct.apellidos}`:'Dr. del Hospital Austin';
+
+                citasGuardadas.forEach(c=>{ c.doctor=nombreDoctorActual; c.especialidad='Médico Tratante'; });
+                guardarDatos();
                 tag.innerHTML=`${nm} <span style="background:var(--triage-critico);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:8px;">ADMIN</span>`;
                 document.getElementById('p-est').disabled=false;
             } else {
@@ -601,8 +654,12 @@
                 for(let c of camillas){if(!c.ocupada&&c.estado==='disponible'){c.ocupada=true;c.idPaciente=n.id;c.paciente=n.apellidos+', '+n.nombres;c.estado=n.estado;n.cama=c.id;break;}}
                 pacientes.unshift(n);const cita=generarCita(n);guardarDatos();e.target.reset();document.getElementById('p-ale').value='Ninguna';
                 document.getElementById('pantalla-carga').classList.remove('activa');actualizarUI();
-                if(rolActual==='doctor'){setTimeout(()=>abrirQR(n.id),200);}
-                else{setTimeout(()=>alert(`✅ Ingreso registrado.\n\n📅 Cita asignada:\n• Doctor: ${cita.doctor}\n• Especialidad: ${cita.especialidad}\n• Fecha: ${cita.fecha}\n• Hora: ${cita.hora}\n\nVe a "Mis Citas" en el menú para verla.`),300);}
+
+                if(rolActual==='doctor'){
+                    setTimeout(()=>abrirQR(n.id),200);
+                } else {
+                    setTimeout(()=>mostrarIngresoOk(n, cita), 200);
+                }
             },500);
         }
 
@@ -659,6 +716,7 @@
             c.fechaISO=fi;c.fecha=fs;c.hora=ho;c.estado=es;guardarDatos();cerrarEditarCita();renderizarCitasDoctor();
         }
 
+
         function darDeAlta(id){pSeleccionado=id;document.getElementById('nombre-paciente-alta').innerText=id;document.getElementById('modal-alta').classList.add('activa');}
         function ejecutarAlta(){pacientes=pacientes.filter(p=>p.id!==pSeleccionado);camillas.forEach(c=>{if(c.idPaciente===pSeleccionado){c.ocupada=false;c.idPaciente=null;c.paciente=null;c.estado='mantenimiento';c.tiempoLimpieza=10;}});citasGuardadas=citasGuardadas.filter(c=>c.expediente!==pSeleccionado);cerrarModalAlta();guardarDatos();actualizarUI();}
         function cerrarModalAlta(){document.getElementById('modal-alta').classList.remove('activa');}
@@ -706,4 +764,4 @@
         actualizarUI();
     </script>
 </body>
-</html> 
+</html>
